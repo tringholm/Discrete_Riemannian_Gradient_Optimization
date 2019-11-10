@@ -1,0 +1,10 @@
+_mexFunction
+_mexfilerequiredapiversion
+_emlrtMexFcnProperties
+_eigenValueSphere3
+_emxEnsureCapacity
+_emxFree_real_T
+_emxInit_real_T
+_eigenValueSphere3_initialize
+_eigenValueSphere3_terminate
+_eigenValueSphere3_atexit

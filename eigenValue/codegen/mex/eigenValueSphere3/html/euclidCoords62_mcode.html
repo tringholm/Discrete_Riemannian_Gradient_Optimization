@@ -1,0 +1,124 @@
+<html>
+<body>
+<script src="resources/eml_report_loadable_data.js"></script>
+<div class="dead">
+<pre class="code">
+<span class="srcline"><span class="lineno"><a href="1,1" id="srcline1">  1</a></span><span class="line"><span class="comment">% Compute the lowest eigenvalue/vector of a symmetric matrix by minimizing the</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,2" id="srcline2">  2</a></span><span class="line"><span class="comment">% Rayleigh quotient over S^{n-1}.</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,3" id="srcline3">  3</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="1,4" id="srcline4">  4</a></span><span class="line">function Vhist = eigenValueSphere3(A,phi,tol,dt)</span></span>
+<span class="srcline"><span class="lineno"><a href="1,5" id="srcline5">  5</a></span><span class="line"><span class="comment">%#codegen</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,6" id="srcline6">  6</a></span><span class="line">N = length(phi)+1;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,7" id="srcline7">  7</a></span><span class="line">Tmax = 2000;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,8" id="srcline8">  8</a></span><span class="line">residual = inf;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,9" id="srcline9">  9</a></span><span class="line">tolNewton =  1E-13;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,10" id="srcline10"> 10</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="1,11" id="srcline11"> 11</a></span><span class="line">dA = diag(A);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,12" id="srcline12"> 12</a></span><span class="line">AU = triu(A,1);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,13" id="srcline13"> 13</a></span><span class="line">Vhist = zeros(Tmax,1);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,14" id="srcline14"> 14</a></span><span class="line">u = euclidCoords(phi);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,15" id="srcline15"> 15</a></span><span class="line">rowsums = u.*(A*u);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,16" id="srcline16"> 16</a></span><span class="line">Vhist(1) = sum(rowsums);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,17" id="srcline17"> 17</a></span><span class="line"><span class="comment">% tic</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,18" id="srcline18"> 18</a></span><span class="line">sums = zeros(1,5);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,19" id="srcline19"> 19</a></span><span class="line">sums(1) = A(1,1)*u(1)^2;                          <span class="comment">% i = k, j = k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,20" id="srcline20"> 20</a></span><span class="line">sums(2) = 0;                                      <span class="comment">% i &lt; k, j = k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,21" id="srcline21"> 21</a></span><span class="line">sums(3) = 2*(rowsums(1) - sums(1));               <span class="comment">% i = k, j &gt; k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,22" id="srcline22"> 22</a></span><span class="line">sums(4) = 0;                                      <span class="comment">% i &lt; k, j &gt; k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,23" id="srcline23"> 23</a></span><span class="line">sums(5) = Vhist(1) - sums(3) - sums(1);           <span class="comment">% i &gt; k, j &gt; k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,24" id="srcline24"> 24</a></span><span class="line">trisum = 2*u.*(AU*u);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,25" id="srcline25"> 25</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="1,26" id="srcline26"> 26</a></span><span class="line">newtoniters = 0;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,27" id="srcline27"> 27</a></span><span class="line">t = 0;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,28" id="srcline28"> 28</a></span><span class="line">for i = 1:Tmax</span></span>
+<span class="srcline"><span class="lineno"><a href="1,29" id="srcline29"> 29</a></span><span class="line">    if  residual &lt; tol</span></span>
+<span class="srcline"><span class="lineno"><a href="1,30" id="srcline30"> 30</a></span><span class="line">        break</span></span>
+<span class="srcline"><span class="lineno"><a href="1,31" id="srcline31"> 31</a></span><span class="line">    end</span></span>
+<span class="srcline"><span class="lineno"><a href="1,32" id="srcline32"> 32</a></span><span class="line">    sum3fact = 1;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,33" id="srcline33"> 33</a></span><span class="line">    ufact = 1;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,34" id="srcline34"> 34</a></span><span class="line">    for j = 1:N-1</span></span>
+<span class="srcline"><span class="lineno"><a href="1,35" id="srcline35"> 35</a></span><span class="line">    </span></span>
+<span class="srcline"><span class="lineno"><a href="1,36" id="srcline36"> 36</a></span><span class="line">        </span></span>
+<span class="srcline"><span class="lineno"><a href="1,37" id="srcline37"> 37</a></span><span class="line">        alpha = 0.1;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,38" id="srcline38"> 38</a></span><span class="line">        dta = dt/alpha;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,39" id="srcline39"> 39</a></span><span class="line">        cp = 1/cos(phi(j)); sp = 1/sin(phi(j));</span></span>
+<span class="srcline"><span class="lineno"><a href="1,40" id="srcline40"> 40</a></span><span class="line">        cpa = cos(phi(j)+alpha); spa = sin(phi(j)+alpha);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,41" id="srcline41"> 41</a></span><span class="line">        cc = cpa*cp; ss = spa*sp; sc = spa*cp; cs = cpa*sp;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,42" id="srcline42"> 42</a></span><span class="line">        </span></span>
+<span class="srcline"><span class="lineno"><a href="1,43" id="srcline43"> 43</a></span><span class="line">        Vd = sums(1)*(cc^2-1) + sums(2)*(cc-1) + sums(3)*(cc*ss - 1) + sums(4)*(ss-1) + sums(5)*(ss^2-1);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,44" id="srcline44"> 44</a></span><span class="line">        V = alpha + dta*Vd;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,45" id="srcline45"> 45</a></span><span class="line">        V_old = inf;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,46" id="srcline46"> 46</a></span><span class="line">        cnt = 0;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,47" id="srcline47"> 47</a></span><span class="line">        while abs(V) &gt; tolNewton &amp;&amp; cnt &lt; 10 &amp;&amp; V_old - V &gt; 0</span></span>
+<span class="srcline"><span class="lineno"><a href="1,48" id="srcline48"> 48</a></span><span class="line">            dV = sums(1)*(-2*sc*cc) + sums(2)*(-sc) + sums(3)*(cc*cs - sc*ss) + sums(4)*cs + sums(5)*2*cs*ss;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,49" id="srcline49"> 49</a></span><span class="line">            dV = 1+ dta*dV - dta*Vd/alpha;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,50" id="srcline50"> 50</a></span><span class="line">            alpha = alpha - V/dV;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,51" id="srcline51"> 51</a></span><span class="line">            dta = dt/alpha;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,52" id="srcline52"> 52</a></span><span class="line">            cpa = cos(phi(j)+alpha); spa = sin(phi(j)+alpha);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,53" id="srcline53"> 53</a></span><span class="line">            cc = cpa*cp; ss = spa*sp; sc = spa*cp; cs = cpa*sp;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,54" id="srcline54"> 54</a></span><span class="line">            Vd = sums(1)*(cc^2-1) + sums(2)*(cc-1) + sums(3)*(cc*ss-1) + sums(4)*(ss-1) + sums(5)*(ss^2-1);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,55" id="srcline55"> 55</a></span><span class="line">            V_old = V;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,56" id="srcline56"> 56</a></span><span class="line">            V = alpha + dta*Vd;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,57" id="srcline57"> 57</a></span><span class="line">            cnt = cnt + 1;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,58" id="srcline58"> 58</a></span><span class="line">        end</span></span>
+<span class="srcline"><span class="lineno"><a href="1,59" id="srcline59"> 59</a></span><span class="line">        </span></span>
+<span class="srcline"><span class="lineno"><a href="1,60" id="srcline60"> 60</a></span><span class="line">        </span></span>
+<span class="srcline"><span class="lineno"><a href="1,61" id="srcline61"> 61</a></span><span class="line">        newtoniters = newtoniters + cnt;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,62" id="srcline62"> 62</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="1,63" id="srcline63"> 63</a></span><span class="line">        u(j) = u(j)*cc*ufact;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,64" id="srcline64"> 64</a></span><span class="line">        ufact = ufact*ss;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,65" id="srcline65"> 65</a></span><span class="line">        un = u(j+1)*ufact;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,66" id="srcline66"> 66</a></span><span class="line">        sum3fact = sum3fact*ss^2;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,67" id="srcline67"> 67</a></span><span class="line">        </span></span>
+<span class="srcline"><span class="lineno"><a href="1,68" id="srcline68"> 68</a></span><span class="line">        sums(1) = un*A(j+1,j+1)*un;              <span class="comment">% i = k, j = k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,69" id="srcline69"> 69</a></span><span class="line">        sums(2) = 0;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,70" id="srcline70"> 70</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="1,71" id="srcline71"> 71</a></span><span class="line">        j1 = j+1;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,72" id="srcline72"> 72</a></span><span class="line">        for k = 1:j</span></span>
+<span class="srcline"><span class="lineno"><a href="1,73" id="srcline73"> 73</a></span><span class="line">            sums(2) = sums(2) + A(k,j1)*u(k);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,74" id="srcline74"> 74</a></span><span class="line">        end</span></span>
+<span class="srcline"><span class="lineno"><a href="1,75" id="srcline75"> 75</a></span><span class="line">        sums(2) = 2*un*sums(2);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,76" id="srcline76"> 76</a></span><span class="line">        sums(4) = cc*ss*sums(3) + ss*sums(4) - sums(2);           <span class="comment">% i &lt; k, j &gt; k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,77" id="srcline77"> 77</a></span><span class="line">        sums(3) = trisum(j+1)*sum3fact;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,78" id="srcline78"> 78</a></span><span class="line">        sums(5) = ss*ss*sums(5) - sums(3) - sums(1);           <span class="comment">% i &gt; k, j &gt; k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,79" id="srcline79"> 79</a></span><span class="line">        phi(j) = phi(j) + alpha;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,80" id="srcline80"> 80</a></span><span class="line">    end</span></span>
+<span class="srcline"><span class="lineno"><a href="1,81" id="srcline81"> 81</a></span><span class="line">    u(end) = u(end)*ufact;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,82" id="srcline82"> 82</a></span><span class="line">    trisum = 2*u.*(AU*u);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,83" id="srcline83"> 83</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="1,84" id="srcline84"> 84</a></span><span class="line">    dsum = sum(u.*dA.*u);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,85" id="srcline85"> 85</a></span><span class="line">    Vhist(i+1) = sum(trisum)+dsum;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,86" id="srcline86"> 86</a></span><span class="line">    sums(1) = A(1,1)*u(1)^2;                          <span class="comment">% i = k, j = k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,87" id="srcline87"> 87</a></span><span class="line">    sums(2) = 0;                                      <span class="comment">% i &lt; k, j = k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,88" id="srcline88"> 88</a></span><span class="line">    sums(3) = trisum(1);                              <span class="comment">% i = k, j &gt; k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,89" id="srcline89"> 89</a></span><span class="line">    sums(4) = 0;                                      <span class="comment">% i &lt; k, j &gt; k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,90" id="srcline90"> 90</a></span><span class="line">    sums(5) = Vhist(i+1) - sums(3) - sums(1);         <span class="comment">% i &gt; k, j &gt; k</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,91" id="srcline91"> 91</a></span><span class="line">    residual = (Vhist(i) - Vhist(i+1))/abs(Vhist(1));</span></span>
+<span class="srcline"><span class="lineno"><a href="1,92" id="srcline92"> 92</a></span><span class="line">end</span></span>
+<span class="srcline"><span class="lineno"><a href="1,93" id="srcline93"> 93</a></span><span class="line"><span class="comment">% toc</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,94" id="srcline94"> 94</a></span><span class="line">t</span></span>
+<span class="srcline"><span class="lineno"><a href="1,95" id="srcline95"> 95</a></span><span class="line">disp(['Algorithm DG-MANIFOLD converged with residual ' num2str(residual) ' in ' int2str(i-1) ' steps.'])</span></span>
+<span class="srcline"><span class="lineno"><a href="1,96" id="srcline96"> 96</a></span><span class="line">Vhist = Vhist(~~Vhist);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,97" id="srcline97"> 97</a></span><span class="line">[V,D]= eig(A);</span></span>
+<span class="srcline"><span class="lineno"><a href="1,98" id="srcline98"> 98</a></span><span class="line">min(norm(V(:,1)-u),norm(V(:,1)+u))</span></span>
+<span class="srcline"><span class="lineno"><a href="1,99" id="srcline99"> 99</a></span><span class="line">D(1,1) - Vhist(end)</span></span>
+<span class="srcline"><span class="lineno"><a href="1,100" id="srcline100">100</a></span><span class="line">newtoniters</span></span>
+<span class="srcline"><span class="lineno"><a href="1,101" id="srcline101">101</a></span><span class="line">end</span></span>
+</pre>
+</div>
+<pre class="code">
+<span class="srcline"><span class="lineno"><a href="1,102" id="srcline102">102</a></span><span class="line"></span></span>
+<span class="srcline"><span class="lineno"><a href="1,103" id="srcline103">103</a></span><span class="line"><span class="keyword">function</span> <span class="var type1" id="S61T6U894">x</span> = euclidCoords(<span class="var type1" id="S62T3U897">phi</span>)</span></span>
+<span class="srcline"><span class="lineno"><a href="1,104" id="srcline104">104</a></span><span class="line"><span class="mxinfo " id="T4:U3"><span class="var type1" id="S63T4U900">n</span> = <span class="mxinfo " id="T4:U5">length(<span class="var type1" id="S62T3U903">phi</span>)</span></span>;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,105" id="srcline105">105</a></span><span class="line"><span class="mxinfo " id="T6:U7"><span class="var type1" id="S61T6U906">x</span> = <span class="mxinfo " id="T6:U9">zeros(<span class="mxinfo " id="T4:U10"><span class="var type1" id="S63T4U910">n</span>+1</span>,1)</span></span>;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,106" id="srcline106">106</a></span><span class="line"><span class="mxinfo " id="T4:U12"><span class="mxinfo " id="T4:U13"><span class="var type1" id="S61T6U916">x</span>(<span class="mxinfo " id="T4:U15">1</span>)</span> = <span class="mxinfo " id="T4:U16">cos(<span class="mxinfo " id="T4:U17"><span class="var type1" id="S62T3U921">phi</span>(<span class="mxinfo " id="T9:U19">1</span>)</span>)</span></span>;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,107" id="srcline107">107</a></span><span class="line"><span class="mxinfo " id="T4:U20"><span class="var type1" id="S67T4U925">sinefact</span> = <span class="mxinfo " id="T4:U22">sin(<span class="mxinfo " id="T4:U23"><span class="var type1" id="S62T3U929">phi</span>(<span class="mxinfo " id="T9:U25">1</span>)</span>)</span></span>;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,108" id="srcline108">108</a></span><span class="line"><span class="keyword">for</span> <span class="var type1" id="S69T4U933">i</span> = <span class="mxinfo " id="T28:U27"><span class="mxinfo " id="T4:U28">2</span>:<span class="var type1" id="S63T4U936">n</span></span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,109" id="srcline109">109</a></span><span class="line">    <span class="mxinfo " id="T4:U30"><span class="mxinfo " id="T4:U31"><span class="var type1" id="S61T6U940">x</span>(<span class="var type1" id="S69T4U941">i</span>)</span> = <span class="mxinfo " id="T4:U34"><span class="mxinfo " id="T4:U35">cos(<span class="mxinfo " id="T4:U36"><span class="var type1" id="S62T3U946">phi</span>(<span class="var type1" id="S69T4U947">i</span>)</span>)</span>*<span class="var type1" id="S67T4U948">sinefact</span></span></span>;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,110" id="srcline110">110</a></span><span class="line">    <span class="mxinfo " id="T4:U40"><span class="var type1" id="S67T4U951">sinefact</span> = <span class="mxinfo " id="T4:U42"><span class="var type1" id="S67T4U953">sinefact</span>*<span class="mxinfo " id="T4:U44">sin(<span class="mxinfo " id="T4:U45"><span class="var type1" id="S62T3U957">phi</span>(<span class="var type1" id="S69T4U958">i</span>)</span>)</span></span></span>;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,111" id="srcline111">111</a></span><span class="line"><span class="keyword">end</span></span></span>
+<span class="srcline"><span class="lineno"><a href="1,112" id="srcline112">112</a></span><span class="line"><span class="mxinfo " id="T4:U48"><span class="mxinfo " id="T4:U49"><span class="var type1" id="S61T6U962">x</span>(<span class="mxinfo " id="T4:U51">end</span>)</span> = <span class="var type1" id="S67T4U965">sinefact</span></span>;</span></span>
+<span class="srcline"><span class="lineno"><a href="1,113" id="srcline113">113</a></span><span class="line"><span class="keyword">end</span></span></span>
+</pre>
+</body>
+</html>
